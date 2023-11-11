@@ -1,6 +1,6 @@
 import pandas as pd
 import plotly.express as px
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, State
 
 happiness = pd.read_csv("world_happiness.csv")
 
@@ -23,6 +23,10 @@ app.layout = html.Div([
                        'happiness_rank': 'Happiness Rank'
                    },
                    value='happiness_score'),
+    html.Br(),
+    html.Button(id='submit-button',
+                n_clicks=0,
+                children='Update the output'),
     dcc.Graph(id='happiness-graph'),
     html.Div(id='average-div')
 ])
@@ -42,10 +46,11 @@ def update_dropdown(selected_region):
 @app.callback(
     Output('happiness-graph', 'figure'),
     Output('average-div', 'children'),
-    Input('country-dropdown', 'value'),
-    Input('data-radio', 'value')
+    Input('submit-button', 'n_clicks'),
+    State('country-dropdown', 'value'),
+    State('data-radio', 'value')
 )
-def update_graph(selected_country, selected_data):
+def update_graph(button_click, selected_country, selected_data):
     filtered_happiness = happiness.query('country == @selected_country')
     line_fig = px.line(filtered_happiness,
                        x='year', y=selected_data,
