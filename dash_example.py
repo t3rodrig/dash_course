@@ -16,20 +16,30 @@ app.layout = html.Div([
     dcc.Dropdown(id='country-dropdown',
                  options=happiness['country'].unique(),
                  value='United States'),
-    dcc.Graph(id='happiness-graph')
+    dcc.RadioItems(id='data-radio',
+                   options={
+                       'happiness_score': 'Happiness Score',
+                       'happiness_rank': 'Happiness Rank'
+                   },
+                   value='happiness_score'),
+    dcc.Graph(id='happiness-graph'),
+    html.Div(id='average-div')
 ])
 
 
 @app.callback(
-    Output('happiness-graph','figure'),
-    Input('country-dropdown','value')
+    Output('happiness-graph', 'figure'),
+    Output('average-div', 'children'),
+    Input('country-dropdown', 'value'),
+    Input('data-radio', 'value')
 )
-def update_graph(selected_country):
+def update_graph(selected_country, selected_data):
     filtered_happiness = happiness.query('country == @selected_country')
     line_fig = px.line(filtered_happiness,
-                       x='year', y='happiness_score',
-                       title=f'Happiness Score in {selected_country}')
-    return line_fig
+                       x='year', y=selected_data,
+                       title=f'{selected_data} in {selected_country}')
+    selected_avg = round(filtered_happiness[selected_data].mean(),2)
+    return line_fig, f'The average {selected_data} for {selected_country} is {selected_avg}'
 
 
 if __name__ == '__main__':
