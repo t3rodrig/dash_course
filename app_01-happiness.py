@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 from dash import Dash, html, dcc, Input, Output, State
 
-happiness = pd.read_csv("world_happiness.csv")
+happiness = pd.read_csv("data/world_happiness.csv")
 
 app = Dash()
 
