@@ -18,8 +18,7 @@ app.layout = html.Div([
                     value=[year_min, year_max],
                     marks={i: str(i) for i in range(year_min, year_max+1)}),
     dcc.Graph(id='map-graph'),
-    dash_table.DataTable(id='price-info',
-                         data=electricity.to_dict('records'))
+    dash_table.DataTable(id='price-info')
 ])
 
 
@@ -41,6 +40,23 @@ def update_map_graph(selected_years):
                             scope='usa',
                             color_continuous_scale='reds')
     return map_fig
+
+
+@app.callback(
+    Output('price-info', 'data'),
+    Input('map-graph', 'clickData'),
+    Input('year-slider', 'value')
+)
+def update_datatable(clicked_data, selected_years):
+    if clicked_data is None:
+        return []
+    us_state = clicked_data['points'][0]['location']
+    filtered_electricity = electricity.query(
+        '(Year >= @selected_years[0]) and '
+        '(Year <= @selected_years[1]) and '
+        '(US_State == @us_state)'
+    )
+    return filtered_electricity.to_dict('records')
 
 
 if __name__ == '__main__':
