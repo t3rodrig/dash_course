@@ -24,7 +24,9 @@ app.layout = html.Div([
         dcc.Tab(label='Candlestick Chart', children=dcc.Graph(id='stock-graph', figure=fig)),
         dcc.Tab(label='Recent Data',
                 children=dash_table.DataTable(id='stock-data', data=price.tail(10).to_dict('records'))),
-    ])
+    ]),
+    dcc.Interval(id='chart-interval', interval=1000*60*15, n_intervals=0),
+    dcc.Interval(id='table-interval', interval=1000*60, n_intervals=0)
 ])
 
 if __name__ == '__main__':
