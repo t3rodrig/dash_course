@@ -2,8 +2,6 @@ import yfinance as yf
 from dash import Dash, html, dcc, dash_table, Input, Output, State
 import plotly.graph_objects as go
 
-price = yf.Ticker('AAPL').history(period='1d', interval='15m').reset_index()
-
 app = Dash()
 
 app.layout = html.Div([
@@ -17,7 +15,8 @@ app.layout = html.Div([
     dcc.Tabs([
         dcc.Tab(label='Candlestick Chart', children=dcc.Graph(id='stock-graph')),
         dcc.Tab(label='Recent Data',
-                children=dash_table.DataTable(id='stock-data', data=price.tail(10).to_dict('records'))),
+                children=[html.Div(id='latest-price-div'),
+                          dash_table.DataTable(id='stock-data')]),
     ]),
     dcc.Interval(id='chart-interval', interval=1000 * 60 * 15, n_intervals=0),
     dcc.Interval(id='table-interval', interval=1000 * 60, n_intervals=0)
@@ -47,6 +46,27 @@ def update_chart(button_click, chart_interval, ticker):
             return fig
         else:
             return {}
+
+
+@app.callback(
+    Output('latest-price-div', 'children'),
+    Output('stock-data', 'data'),
+    Input('submit-button', 'n_clicks'),
+    Input('table-interval', 'n_intervals'),
+    State('ticker-input', 'value')
+)
+def update_table(button_click, table_interval, ticker):
+    if ticker is None:
+        return '', []
+    else:
+        price = yf.Ticker(ticker).history(
+            period='1d', interval='1m').reset_index().tail(10)
+        if len(price) > 0:
+            latest_price = round(price['Close'].iloc[-1], 2)
+            latest_time = price['Datetime'].max().strftime('%b %d %Y %I:%M:%S %p')
+            return f'The latest price is {latest_price} at the time of {latest_time}', price.to_dict('records')
+        else:
+            return f'No data for ticker {ticker} on Yahoo Finance', []
 
 
 if __name__ == '__main__':
